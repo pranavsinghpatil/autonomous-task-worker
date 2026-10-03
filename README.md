@@ -18,9 +18,10 @@ Payment or transfer requests stop at `awaiting_approval` before tools run. A mis
 From the repository root:
 
 ```powershell
-uv sync --locked
+uv python install 3.12 --install-dir .python --cache-dir .uv-cache --no-bin --no-registry
+uv sync --locked --cache-dir .uv-cache --python .python/cpython-3.12-windows-x86_64-none/python.exe
 Copy-Item .env.example .env
-uv run uvicorn taskworker.api:app --reload
+uv run --cache-dir .uv-cache uvicorn taskworker.api:app --reload
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000). If the application entry point differs, use the `uvicorn` command in the project configuration or update this command to match it.
@@ -56,9 +57,9 @@ See [docs/architecture.md](docs/architecture.md) for the component diagram, data
 ## Running checks
 
 ```powershell
-uv run pytest
-uv run ruff check .
-uv run pyright
+uv run --cache-dir .uv-cache pytest
+uv run --cache-dir .uv-cache ruff check .
+uv run --cache-dir .uv-cache pyright
 ```
 
 These checks cover planner routing and validation, deterministic fallback, safety stops, invoice selection, retry bounds, idempotency, verification, and the HTTP API.

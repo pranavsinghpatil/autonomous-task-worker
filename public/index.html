@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TaskWorker — Verifiable AI operations</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="eyebrow"><span></span> LOCAL SANDBOX · VERIFIABLE EXECUTION</p>
+        <h1>Give the worker an outcome.<br><em>Watch it earn confidence.</em></h1>
+        <p class="lede">A focused AI worker that plans with Groq, Gemini, or an offline fallback; uses typed tools; recovers once; and verifies persisted work before claiming completion.</p>
+      </header>
+
+      <section class="workspace">
+        <article class="panel task-panel">
+          <div class="panel-title"><span>01</span><h2>Task intake</h2></div>
+          <form id="task-form">
+            <label for="task">What should the worker accomplish?</label>
+            <textarea id="task" required>Find the latest invoice from Acme Supplies, extract the amount and due date, enter it into our internal system, and tell me once it is done.</textarea>
+            <div class="form-footer">
+              <small>Sandbox suppliers: Acme Supplies · Northwind Logistics · Contoso Cloud</small>
+              <button type="submit" id="run-button">Run task <b>→</b></button>
+            </div>
+          </form>
+          <div class="quick-actions">
+            <button data-task="Find the latest invoice from Northwind Logistics, extract the amount and due date, and enter it into our internal system.">Try Northwind</button>
+            <button data-task="Pay the latest invoice from Acme Supplies.">Test safety gate</button>
+            <button data-task="Find the latest invoice and enter it into our internal system.">Test clarification</button>
+          </div>
+        </article>
+
+        <article class="panel" id="status-card">
+          <div class="panel-title"><span>02</span><h2>Worker state</h2></div>
+          <div id="idle-state" class="idle-state"><div class="orb"></div><p>Ready for an objective.<br><small>No action occurs until a task is submitted.</small></p></div>
+          <div id="run-result" hidden></div>
+        </article>
+      </section>
+
+      <section class="evidence-layout">
+        <article class="panel trace-panel">
+          <div class="panel-title"><span>03</span><h2>Execution trace</h2><small id="trace-count">waiting</small></div>
+          <ol id="trace" class="trace"><li class="empty">The trace will show policy decisions, plans, tool calls, observations, retries, and verification.</li></ol>
+        </article>
+        <article class="panel ledger-panel">
+          <div class="panel-title"><span>04</span><h2>Internal ledger</h2><button id="reset-button" class="quiet" type="button">Reset demo data</button></div>
+          <div id="ledger" class="ledger"><p class="empty">No verified entries yet.</p></div>
+        </article>
+      </section>
+    </main>
+    <template id="event-template"><li><i></i><div><strong></strong><p></p><small></small></div></li></template>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

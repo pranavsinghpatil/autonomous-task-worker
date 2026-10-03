@@ -5,7 +5,14 @@ from pydantic import ValidationError
 
 from taskworker.config import Settings
 from taskworker.models import ActionName
-from taskworker.planner import OfflinePlanner, PlannerError, ResilientPlanner, validate_model_plan
+from taskworker.planner import (
+    OfflinePlanner,
+    PlannerError,
+    PlannerResult,
+    ResilientPlanner,
+    default_actions,
+    validate_model_plan,
+)
 
 SUPPLIERS = ["Acme Supplies", "Northwind Logistics", "Contoso Cloud"]
 
@@ -53,3 +60,41 @@ def test_auto_mode_without_credentials_is_labeled_offline(tmp_path) -> None:
     result = ResilientPlanner(settings).plan("Process Acme Supplies invoice.", SUPPLIERS)
     assert result.provider == "offline"
     assert result.fallback_reason == "No online planner is configured"
+
+
+def test_groq_failure_uses_configured_gemini_fallback(tmp_path, monkeypatch) -> None:
+    class FailedGroq:
+        def __init__(self, *_: str) -> None:
+            pass
+
+        def plan(self, *_: object) -> PlannerResult:
+            raise PlannerError("Groq unavailable")
+
+    class WorkingGemini:
+        def __init__(self, *_: str) -> None:
+            pass
+
+        def plan(self, _: str, suppliers: list[str]) -> PlannerResult:
+            return PlannerResult(
+                provider="gemini",
+                plan={
+                    "company": suppliers[0],
+                    "requested_fields": ["amount", "due_date"],
+                    "actions": default_actions(),
+                    "rationale": "Gemini fallback created the validated plan.",
+                },
+            )
+
+    monkeypatch.setattr("taskworker.planner.GroqPlanner", FailedGroq)
+    monkeypatch.setattr("taskworker.planner.GeminiPlanner", WorkingGemini)
+    settings = Settings(
+        database_path=tmp_path / "unused.db",
+        planner_provider="groq",
+        groq_api_key="test-groq-key",
+        groq_model="test",
+        gemini_api_key="test-gemini-key",
+        gemini_model="test",
+        demo_transient_failure=True,
+    )
+    result = ResilientPlanner(settings).plan("Process Acme Supplies invoice.", SUPPLIERS)
+    assert result.provider == "gemini"

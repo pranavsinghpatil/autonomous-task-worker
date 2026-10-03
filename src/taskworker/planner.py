@@ -156,7 +156,7 @@ class ResilientPlanner(Planner):
         candidates: list[Planner] = []
         if preferred in {"auto", "groq"} and self.settings.groq_api_key:
             candidates.append(GroqPlanner(self.settings.groq_api_key, self.settings.groq_model))
-        if preferred in {"auto", "gemini"} and self.settings.gemini_api_key:
+        if preferred in {"auto", "groq", "gemini"} and self.settings.gemini_api_key:
             candidates.append(
                 GeminiPlanner(self.settings.gemini_api_key, self.settings.gemini_model)
             )

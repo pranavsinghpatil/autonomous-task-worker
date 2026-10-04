@@ -190,7 +190,7 @@ Next steps would be browser/computer-use adapters with URL allowlists and screen
 
 ## Demo and submission checklist
 
-Use [docs/demo-script.md](docs/demo-script.md) for the 90–120 second recording.
+First follow [docs/usage-test.md](docs/usage-test.md) to install, use, and validate the worker. Then use [docs/demo-script.md](docs/demo-script.md) for the 90–120 second recording.
 
 Before submitting:
 

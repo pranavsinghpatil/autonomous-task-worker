@@ -24,9 +24,9 @@ class Settings:
             database_path=Path(os.getenv("DATABASE_PATH", "data/taskworker.db")),
             planner_provider=os.getenv("PLANNER_PROVIDER", "auto").lower(),
             groq_api_key=os.getenv("GROQ_API_KEY") or None,
-            groq_model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+            groq_model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
             gemini_api_key=os.getenv("GEMINI_API_KEY") or None,
-            gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
             demo_transient_failure=os.getenv("DEMO_TRANSIENT_FAILURE", "true").lower()
             not in {"0", "false", "no"},
         )

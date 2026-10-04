@@ -8,7 +8,7 @@ import httpx
 from pydantic import ValidationError
 
 from taskworker.config import Settings
-from taskworker.models import ActionName, InvoicePlan, PlannedAction, PlannerResult
+from taskworker.models import ALLOWED_ACTIONS, ActionName, InvoicePlan, PlannedAction, PlannerResult
 
 SYSTEM_PROMPT = """You are the planning component of a sandboxed invoice-intake worker.
 Return JSON only. The worker can only process an invoice already present in its simulated mailbox.
@@ -76,7 +76,23 @@ class OfflinePlanner(Planner):
 def validate_model_plan(
     payload: dict[str, Any], suppliers: list[str], provider: str
 ) -> PlannerResult:
-    plan = InvoicePlan.model_validate(payload)
+    try:
+        raw_actions = payload["actions"]
+        action_names = [
+            ActionName(action if isinstance(action, str) else action["name"])
+            for action in raw_actions
+        ]
+    except (KeyError, TypeError, ValueError) as error:
+        raise PlannerError(
+            "The model response did not include valid allowlisted actions."
+        ) from error
+    if action_names != ALLOWED_ACTIONS:
+        raise PlannerError("The model requested actions outside the allowed invoice workflow.")
+    normalized_payload = {
+        **payload,
+        "actions": [action.model_dump() for action in default_actions()],
+    }
+    plan = InvoicePlan.model_validate(normalized_payload)
     supplier = next((item for item in suppliers if item.lower() == plan.company.lower()), None)
     if not supplier:
         raise PlannerError("The model selected a supplier outside the sandbox allowlist.")
@@ -126,7 +142,7 @@ class GeminiPlanner(Planner):
     def plan(self, task: str, suppliers: list[str]) -> PlannerResult:
         response = httpx.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent",
-            params={"key": self.api_key},
+            headers={"x-goog-api-key": self.api_key},
             json={
                 "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
                 "contents": [
@@ -135,7 +151,11 @@ class GeminiPlanner(Planner):
                         "parts": [{"text": json.dumps({"task": task, "suppliers": suppliers})}],
                     }
                 ],
-                "generationConfig": {"responseMimeType": "application/json", "temperature": 0},
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": InvoicePlan.model_json_schema(),
+                    "temperature": 0,
+                },
             },
             timeout=15,
         )
@@ -164,10 +184,28 @@ class ResilientPlanner(Planner):
         for planner in candidates:
             try:
                 return planner.plan(task, suppliers)
-            except (httpx.HTTPError, PlannerError) as error:
-                reasons.append(str(error))
+            except httpx.HTTPStatusError as error:
+                reasons.append(
+                    f"{self._provider_name(planner)} request returned HTTP "
+                    f"{error.response.status_code}"
+                )
+            except httpx.HTTPError as error:
+                reasons.append(
+                    f"{self._provider_name(planner)} network request failed "
+                    f"({error.__class__.__name__})"
+                )
+            except PlannerError:
+                reasons.append(f"{self._provider_name(planner)} returned an invalid plan")
         if preferred in {"groq", "gemini"} and not candidates:
             reasons.append(f"{preferred.title()} was selected but its API key is not configured")
         return OfflinePlanner("; ".join(reasons) or "No online planner is configured").plan(
             task, suppliers
         )
+
+    @staticmethod
+    def _provider_name(planner: Planner) -> str:
+        if isinstance(planner, GroqPlanner):
+            return "Groq"
+        if isinstance(planner, GeminiPlanner):
+            return "Gemini"
+        return "Planner"

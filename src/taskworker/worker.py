@@ -54,6 +54,18 @@ class TaskWorker:
             return self._finish(run)
 
         suppliers = self.database.supplier_names()
+        named_supplier = next(
+            (supplier for supplier in suppliers if supplier.lower() in task.lower()), None
+        )
+        if not named_supplier:
+            run.status = RunStatus.AWAITING_CLARIFICATION
+            run.planner_provider = "policy"
+            run.summary = (
+                "I need a recognized supplier before I can safely search the sandbox mailbox."
+            )
+            log("clarification", run.summary, reason="supplier_not_named", suppliers=suppliers)
+            return self._finish(run)
+
         try:
             plan_result = self.planner.plan(task, suppliers)
         except PlannerError as error:
@@ -68,6 +80,20 @@ class TaskWorker:
         run.plan = plan_result.plan
         run.planner_provider = plan_result.provider
         run.planner_fallback_reason = plan_result.fallback_reason
+        if run.plan.company.lower() != named_supplier.lower():
+            run.status = RunStatus.AWAITING_CLARIFICATION
+            run.summary = (
+                "The planner selected a supplier that does not match the task; "
+                "clarification is required before execution."
+            )
+            log(
+                "clarification",
+                run.summary,
+                reason="planned_supplier_mismatch",
+                named_supplier=named_supplier,
+                planned_supplier=run.plan.company,
+            )
+            return self._finish(run)
         log(
             "plan",
             f"Created an allowlisted invoice-intake plan for {run.plan.company}.",

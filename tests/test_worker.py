@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from taskworker.api import build_worker
 from taskworker.database import Database
-from taskworker.models import RunStatus
-from taskworker.planner import OfflinePlanner
+from taskworker.models import InvoicePlan, PlannerResult, RunStatus
+from taskworker.planner import OfflinePlanner, Planner, default_actions
 from taskworker.tools import InternalLedgerTool, InvoiceExtractorTool, MailboxTool
 from taskworker.worker import TaskWorker
 
@@ -45,6 +45,60 @@ def test_missing_supplier_stops_before_tools(settings) -> None:
     assert run.status is RunStatus.AWAITING_CLARIFICATION
     assert [event.type for event in run.events] == ["clarification"]
     assert worker.database.list_ledger() == []
+
+
+def test_live_planner_cannot_invent_a_supplier_for_an_ambiguous_task(settings) -> None:
+    class InventedSupplierPlanner(Planner):
+        def plan(self, task: str, suppliers: list[str]) -> PlannerResult:
+            return PlannerResult(
+                provider="test",
+                plan=InvoicePlan(
+                    company="Acme Supplies",
+                    actions=default_actions(),
+                    rationale="This deliberately simulates an unsafe model inference.",
+                ),
+            )
+
+    database = Database(settings.database_path)
+    database.initialize()
+    worker = TaskWorker(
+        database,
+        InventedSupplierPlanner(),
+        MailboxTool(database),
+        InvoiceExtractorTool(),
+        InternalLedgerTool(database, fail_first_write=False),
+    )
+    run = worker.run("Find the latest invoice and enter it into the internal ledger.")
+    assert run.status is RunStatus.AWAITING_CLARIFICATION
+    assert [event.type for event in run.events] == ["clarification"]
+    assert database.list_ledger() == []
+
+
+def test_live_planner_cannot_switch_the_named_supplier(settings) -> None:
+    class MismatchedSupplierPlanner(Planner):
+        def plan(self, task: str, suppliers: list[str]) -> PlannerResult:
+            return PlannerResult(
+                provider="test",
+                plan=InvoicePlan(
+                    company="Contoso Cloud",
+                    actions=default_actions(),
+                    rationale="This deliberately simulates an unsafe model selection.",
+                ),
+            )
+
+    database = Database(settings.database_path)
+    database.initialize()
+    worker = TaskWorker(
+        database,
+        MismatchedSupplierPlanner(),
+        MailboxTool(database),
+        InvoiceExtractorTool(),
+        InternalLedgerTool(database, fail_first_write=False),
+    )
+    run = worker.run("Process the latest invoice from Acme Supplies.")
+    assert run.status is RunStatus.AWAITING_CLARIFICATION
+    assert [event.type for event in run.events] == ["clarification"]
+    assert database.list_ledger() == []
 
 
 def test_verification_failure_does_not_claim_completion(settings) -> None:

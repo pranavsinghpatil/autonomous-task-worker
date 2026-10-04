@@ -27,7 +27,7 @@ Show the empty dashboard.
 
 > This is Autonomous Task Worker, a Python and FastAPI prototype for a simulated invoice-intake workflow. It uses seeded local mailbox and ledger data only—no real email, payment, or browser access. The focus is verified task execution rather than a chat response.
 
-Point to **Task intake**, **Worker state**, **Execution trace**, and **Internal ledger**.
+Point to **Mission control**, **Run outcome**, **Source inbox**, **Evidence locker**, **Execution trace**, and **Verified ledger**.
 
 ### 0:12–0:28 — Submit an outcome
 
@@ -37,7 +37,7 @@ Paste the Acme task and click **Run task**.
 
 ### 0:28–0:58 — Explain autonomy and recovery
 
-In **Worker state**, identify the provider exactly as displayed: **Planner: groq**, **Planner: gemini**, or **Planner: offline**. If the UI says **fallback active**, state that a provider failed and the recorded fallback created the plan.
+In **Run outcome**, identify the provider exactly as displayed: **Planner: groq**, **Planner: gemini**, or **Planner: offline**. If the UI says **fallback active**, state that a provider failed and the recorded fallback created the plan. Point out that the **Source inbox** is the entire simulated data boundary and the **Evidence locker** receives four persisted references after a completed run.
 
 Point to the visible four-step plan and say:
 
@@ -57,7 +57,7 @@ Point to **Verified completion**, the result details, and the ledger row.
 
 ### 1:13–1:30 — Show the approval stop
 
-Click **Test safety gate**, then **Run task**.
+Click **Test approval gate**, then **Launch worker**.
 
 > This request includes payment language. Policy stops it at awaiting approval before a planner or invoice tool runs. The trace has one safety event and the ledger is unchanged.
 
@@ -65,7 +65,7 @@ Show **Approval required**, **Policy gate**, and the one `safety` event.
 
 ### 1:30–1:47 — Show the clarification stop
 
-Click **Test clarification**, then **Run task**.
+Click **Test clarification**, then **Launch worker**.
 
 > This task does not name a sandbox supplier. The worker will not let a model guess. It asks for clarification before tool execution, so no new ledger row is created.
 

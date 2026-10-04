@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-18%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-19%20passing-2ea44f)
 
 Autonomous Task Worker accepts a natural-language outcome, produces a constrained plan, executes typed local tools, recovers from a transient failure, and independently verifies the resulting ledger record before it reports completion.
 
@@ -21,7 +21,7 @@ It is a deliberately narrow but genuine prototype for the **Autonomous AI Task W
 | Recover from failure | A simulated retryable ledger `503` is retried exactly once. |
 | Verify completion | A separate database read compares invoice number, amount, and due date against the source. |
 | Stay safe | Payment/transfer tasks pause for approval; missing suppliers request clarification. |
-| Return evidence | Runs persist plans, events, evidence references, and final results. |
+| Return evidence | The operator workspace shows the source inbox, plans, events, evidence references, recent runs, and final results. |
 
 ## Scope and safety
 
@@ -140,6 +140,7 @@ Invoke-RestMethod -Uri http://127.0.0.1:8000/api/demo/reset -Method Post
 | `POST /api/tasks` | Run a task. Body: `{ "task": "..." }`. Returns the plan, events, evidence, and result. |
 | `GET /api/runs/{run_id}` | Retrieve a persisted run and its audit trail. |
 | `GET /api/ledger` | List verified ledger records. |
+| `GET /api/workspace` | Retrieve the seeded inbox, suppliers, verified ledger, and recent run summaries for the local operator workspace. |
 | `POST /api/demo/reset` | Clear generated runs and ledger entries. Demo use only. |
 | `GET /api/health` | Check server health and configured planner mode. |
 

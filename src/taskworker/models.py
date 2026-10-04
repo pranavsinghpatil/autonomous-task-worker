@@ -96,6 +96,35 @@ class LedgerRecord(BaseModel):
     already_existed: bool = False
 
 
+class InboxInvoice(BaseModel):
+    id: str
+    company: str
+    invoice_number: str
+    amount: float
+    currency: str
+    due_date: str
+    received_at: str
+    subject: str
+    is_latest_for_supplier: bool = False
+
+
+class RunSummary(BaseModel):
+    id: str
+    task: str
+    status: RunStatus
+    planner_provider: str
+    started_at: str
+    completed_at: str | None = None
+    summary: str
+
+
+class WorkspaceSnapshot(BaseModel):
+    suppliers: list[str]
+    inbox: list[InboxInvoice]
+    ledger: list[LedgerRecord]
+    recent_runs: list[RunSummary]
+
+
 class RunResponse(BaseModel):
     id: str
     task: str

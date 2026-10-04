@@ -7,7 +7,15 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-from taskworker.models import Event, Evidence, LedgerRecord, RunResponse, RunStatus
+from taskworker.models import (
+    Event,
+    Evidence,
+    InboxInvoice,
+    LedgerRecord,
+    RunResponse,
+    RunStatus,
+    RunSummary,
+)
 
 SEED_INVOICES = (
     {
@@ -49,6 +57,36 @@ SEED_INVOICES = (
         "due_date": "2026-10-31",
         "received_at": "2026-10-03T06:45:00+00:00",
         "subject": "Contoso Cloud — October invoice",
+    },
+    {
+        "id": "mail-1052",
+        "company": "Northwind Logistics",
+        "invoice_number": "NW-4391",
+        "amount": 512.75,
+        "currency": "USD",
+        "due_date": "2026-09-28",
+        "received_at": "2026-09-11T11:36:00+00:00",
+        "subject": "Northwind freight services invoice NW-4391",
+    },
+    {
+        "id": "mail-1026",
+        "company": "Contoso Cloud",
+        "invoice_number": "CONT-7644",
+        "amount": 1980.00,
+        "currency": "USD",
+        "due_date": "2026-09-30",
+        "received_at": "2026-09-02T15:10:00+00:00",
+        "subject": "Contoso Cloud — September platform usage",
+    },
+    {
+        "id": "mail-1018",
+        "company": "Acme Supplies",
+        "invoice_number": "ACME-2026-0721",
+        "amount": 760.40,
+        "currency": "USD",
+        "due_date": "2026-08-25",
+        "received_at": "2026-08-05T08:42:00+00:00",
+        "subject": "Invoice ACME-2026-0721 — office replenishment",
     },
 )
 
@@ -132,6 +170,20 @@ class Database:
                 for row in connection.execute("SELECT DISTINCT company FROM invoices")
             ]
 
+    def list_invoices(self) -> list[InboxInvoice]:
+        with self.connection() as connection:
+            rows = connection.execute("SELECT * FROM invoices ORDER BY received_at DESC").fetchall()
+        newest_by_supplier: dict[str, str] = {}
+        for row in rows:
+            newest_by_supplier.setdefault(row["company"].lower(), row["id"])
+        return [
+            InboxInvoice(
+                **dict(row),
+                is_latest_for_supplier=newest_by_supplier[row["company"].lower()] == row["id"],
+            )
+            for row in rows
+        ]
+
     def save_ledger_record(self, record: LedgerRecord) -> LedgerRecord:
         with self.connection() as connection:
             existing = connection.execute(
@@ -171,6 +223,19 @@ class Database:
                 "SELECT * FROM ledger_records ORDER BY entered_at DESC"
             ).fetchall()
             return [LedgerRecord(**dict(row)) for row in rows]
+
+    def list_recent_runs(self, limit: int = 6) -> list[RunSummary]:
+        with self.connection() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, task, status, planner_provider, started_at, completed_at, summary
+                FROM runs
+                ORDER BY started_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [RunSummary(**dict(row)) for row in rows]
 
     def save_run(self, run: RunResponse) -> None:
         with self.connection() as connection:

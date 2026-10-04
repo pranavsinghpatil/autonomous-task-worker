@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from taskworker.config import Settings
 from taskworker.database import Database
-from taskworker.models import LedgerRecord, RunResponse, TaskRequest
+from taskworker.models import LedgerRecord, RunResponse, TaskRequest, WorkspaceSnapshot
 from taskworker.planner import ResilientPlanner
 from taskworker.tools import InternalLedgerTool, InvoiceExtractorTool, MailboxTool
 from taskworker.worker import TaskWorker
@@ -63,6 +63,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/ledger", response_model=list[LedgerRecord])
     def get_ledger() -> list[LedgerRecord]:
         return worker.database.list_ledger()
+
+    @app.get("/api/workspace", response_model=WorkspaceSnapshot)
+    def get_workspace() -> WorkspaceSnapshot:
+        return WorkspaceSnapshot(
+            suppliers=worker.database.supplier_names(),
+            inbox=worker.database.list_invoices(),
+            ledger=worker.database.list_ledger(),
+            recent_runs=worker.database.list_recent_runs(),
+        )
 
     @app.post("/api/demo/reset", status_code=status.HTTP_200_OK)
     def reset_demo() -> dict[str, str]:

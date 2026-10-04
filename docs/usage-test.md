@@ -96,9 +96,11 @@ Check all of the following:
 
 | Area | Expected result |
 | --- | --- |
-| Worker state | **Verified completion** |
+| Run outcome | **Verified completion** |
 | Provider | `Planner: groq`, `Planner: gemini`, or `Planner: offline` (all are valid if labelled honestly) |
 | Plan | Four actions: find, extract, write, verify |
+| Source inbox | A highlighted latest invoice exists for each sandbox supplier |
+| Evidence locker | Four references: mail, extraction, ledger, and verification |
 | Trace | One `failure`, exactly one `retry`, and a final `verified` event |
 | Result | `ACME-2026-0918`, `$1,280.50`, `2026-10-20` |
 | Ledger | One Acme Supplies record with the same invoice, amount, and due date |
@@ -107,13 +109,13 @@ Run the same happy-path task a second time. It should still complete, and the AP
 
 ### B. Approval gate
 
-Click **Test safety gate**, then **Run task**.
+Click **Test approval gate**, then **Launch worker**.
 
 Expected: **Approval required**, **Policy gate**, exactly one `safety` trace event, and no additional ledger row.
 
 ### C. Clarification gate
 
-Click **Test clarification**, then **Run task**.
+Click **Test clarification**, then **Launch worker**.
 
 Expected: **Clarification required**, **Policy gate**, exactly one `clarification` trace event, and no additional ledger row.
 

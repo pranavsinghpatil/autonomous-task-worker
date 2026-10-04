@@ -3,51 +3,95 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TaskWorker — Verifiable AI operations</title>
+    <meta name="theme-color" content="#0a1021">
+    <title>Orbit Ledger — Autonomous Task Worker</title>
     <link rel="stylesheet" href="/static/styles.css">
   </head>
   <body>
+    <div class="noise"></div>
     <main>
-      <header class="hero">
-        <p class="eyebrow"><span></span> LOCAL SANDBOX · VERIFIABLE EXECUTION</p>
-        <h1>Give the worker an outcome.<br><em>Watch it earn confidence.</em></h1>
-        <p class="lede">A focused AI worker that plans with Groq, Gemini, or an offline fallback; uses typed tools; recovers once; and verifies persisted work before claiming completion.</p>
-      </header>
+      <nav class="topbar" aria-label="Workspace navigation">
+        <a class="brand" href="/" aria-label="Orbit Ledger home"><span class="brand-mark">◌</span><span>ORBIT<br><em>LEDGER</em></span></a>
+        <div class="topbar-status"><span class="pulse"></span><span>SIMULATED FINANCE OPS</span><span class="separator">/</span><span id="provider-mode">ROUTER READY</span></div>
+        <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+      </nav>
 
-      <section class="workspace">
-        <article class="panel task-panel">
-          <div class="panel-title"><span>01</span><h2>Task intake</h2></div>
+      <section class="hero">
+        <div>
+          <p class="kicker">AUTONOMOUS WORKER / 01</p>
+          <h1>Give it an outcome.<br><span>Watch the proof appear.</span></h1>
+          <p class="lede">A constrained AI worker for invoice intake. It plans, acts through local tools, recovers from failure, and verifies the final state before it claims success.</p>
+        </div>
+        <aside class="trust-card">
+          <p class="eyebrow">EXECUTION CONTRACT</p>
+          <strong>4 allowlisted actions</strong>
+          <div class="contract-steps"><span>01 Search</span><span>02 Extract</span><span>03 Write</span><span>04 Verify</span></div>
+          <p>Model output is a proposal. The worker enforces the contract.</p>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Workspace summary">
+        <article><span class="metric-label">SOURCE INBOX</span><strong id="inbox-count">—</strong><small>synthetic business records</small></article>
+        <article><span class="metric-label">VERIFIED LEDGER</span><strong id="ledger-count">—</strong><small>persisted outcomes</small></article>
+        <article><span class="metric-label">RECENT RUNS</span><strong id="run-count">—</strong><small>auditable missions</small></article>
+        <article class="policy-metric"><span class="metric-label">SAFETY POLICY</span><strong>ACTIVE</strong><small>approval + clarification gates</small></article>
+      </section>
+
+      <section class="command-grid">
+        <article class="panel mission-panel">
+          <div class="panel-heading"><div><span class="panel-index">01</span><h2>Mission control</h2></div><span class="panel-caption">NATURAL-LANGUAGE OUTCOME</span></div>
           <form id="task-form">
             <label for="task">What should the worker accomplish?</label>
             <textarea id="task" required>Find the latest invoice from Acme Supplies, extract the amount and due date, enter it into our internal system, and tell me once it is done.</textarea>
             <div class="form-footer">
-              <small>Sandbox suppliers: Acme Supplies · Northwind Logistics · Contoso Cloud</small>
-              <button type="submit" id="run-button">Run task <b>→</b></button>
+              <small id="supplier-list">Loading sandbox suppliers…</small>
+              <button type="submit" id="run-button"><span>Launch worker</span><b>↗</b></button>
             </div>
           </form>
-          <div class="quick-actions">
-            <button data-task="Find the latest invoice from Northwind Logistics, extract the amount and due date, and enter it into our internal system.">Try Northwind</button>
-            <button data-task="Pay the latest invoice from Acme Supplies.">Test safety gate</button>
-            <button data-task="Find the latest invoice and enter it into our internal system.">Test clarification</button>
+          <div class="quick-actions" aria-label="Task examples">
+            <button type="button" data-task="Find the latest invoice from Northwind Logistics, extract the amount and due date, and enter it into our internal system.">Try Northwind</button>
+            <button type="button" data-task="Pay the latest invoice from Acme Supplies.">Test approval gate</button>
+            <button type="button" data-task="Find the latest invoice and enter it into our internal system.">Test clarification</button>
           </div>
         </article>
 
-        <article class="panel" id="status-card">
-          <div class="panel-title"><span>02</span><h2>Worker state</h2></div>
-          <div id="idle-state" class="idle-state"><div class="orb"></div><p>Ready for an objective.<br><small>No action occurs until a task is submitted.</small></p></div>
+        <article class="panel outcome-panel" id="status-card">
+          <div class="panel-heading"><div><span class="panel-index">02</span><h2>Run outcome</h2></div><span class="panel-caption" id="run-clock">AWAITING INPUT</span></div>
+          <div id="idle-state" class="idle-state">
+            <div class="orbit"><i></i><i></i><i></i></div>
+            <p>Worker standing by.</p><small>Submit an objective to create an auditable run.</small>
+          </div>
           <div id="run-result" hidden></div>
         </article>
       </section>
 
-      <section class="evidence-layout">
+      <section class="data-grid">
+        <article class="panel inbox-panel">
+          <div class="panel-heading"><div><span class="panel-index">03</span><h2>Source inbox</h2></div><span class="panel-caption">SIMULATED MAILBOX</span></div>
+          <p class="panel-intro">The worker can inspect only these local records. The highlighted record is the latest invoice for each supplier.</p>
+          <div id="inbox" class="inbox-list"><p class="empty">Loading source records…</p></div>
+        </article>
+        <article class="panel evidence-panel">
+          <div class="panel-heading"><div><span class="panel-index">04</span><h2>Evidence locker</h2></div><span class="panel-caption" id="evidence-count">NO RUN SELECTED</span></div>
+          <div id="evidence" class="evidence-list"><p class="empty">Source, extraction, ledger, and verification references appear here after a run.</p></div>
+        </article>
+      </section>
+
+      <section class="execution-grid">
         <article class="panel trace-panel">
-          <div class="panel-title"><span>03</span><h2>Execution trace</h2><small id="trace-count">waiting</small></div>
+          <div class="panel-heading"><div><span class="panel-index">05</span><h2>Execution trace</h2></div><span class="panel-caption" id="trace-count">WAITING</span></div>
           <ol id="trace" class="trace"><li class="empty">The trace will show policy decisions, plans, tool calls, observations, retries, and verification.</li></ol>
         </article>
-        <article class="panel ledger-panel">
-          <div class="panel-title"><span>04</span><h2>Internal ledger</h2><button id="reset-button" class="quiet" type="button">Reset demo data</button></div>
-          <div id="ledger" class="ledger"><p class="empty">No verified entries yet.</p></div>
-        </article>
+        <aside class="side-stack">
+          <article class="panel compact-panel">
+            <div class="panel-heading"><div><span class="panel-index">06</span><h2>Recent missions</h2></div></div>
+            <div id="run-history" class="history-list"><p class="empty">No completed runs yet.</p></div>
+          </article>
+          <article class="panel compact-panel ledger-panel">
+            <div class="panel-heading"><div><span class="panel-index">07</span><h2>Verified ledger</h2></div><button id="reset-button" class="quiet" type="button">Reset demo data</button></div>
+            <div id="ledger" class="ledger"><p class="empty">No verified entries yet.</p></div>
+          </article>
+        </aside>
       </section>
     </main>
     <template id="event-template"><li><i></i><div><strong></strong><p></p><small></small></div></li></template>

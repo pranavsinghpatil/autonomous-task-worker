@@ -31,3 +31,15 @@ def test_demo_reset_clears_ledger(app) -> None:
     assert client.get("/api/ledger").json()
     assert client.post("/api/demo/reset").status_code == 200
     assert client.get("/api/ledger").json() == []
+
+
+def test_workspace_api_exposes_source_context_and_recent_runs(app) -> None:
+    client = TestClient(app)
+    client.post("/api/tasks", json={"task": "Process the latest invoice from Acme Supplies."})
+    workspace = client.get("/api/workspace")
+    assert workspace.status_code == 200
+    body = workspace.json()
+    assert body["suppliers"] == ["Acme Supplies", "Northwind Logistics", "Contoso Cloud"]
+    assert len(body["inbox"]) >= 7
+    assert any(item["is_latest_for_supplier"] for item in body["inbox"])
+    assert body["recent_runs"][0]["status"] == "completed"

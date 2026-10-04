@@ -9,6 +9,7 @@
 Autonomous Task Worker accepts a natural-language outcome, produces a constrained plan, executes typed local tools, recovers from a transient failure, and independently verifies the resulting ledger record before it reports completion.
 
 It is a deliberately narrow but genuine prototype for the **Autonomous AI Task Worker** internship assignment. It favors an auditable end-to-end workflow over a broad demo that merely claims autonomy.
+### Demo : [`here`](https://drive.google.com/file/d/1vUCAPyYU_jhFZiO5STRecJBXvfo2x4nk/view?usp=sharing)
 
 ## What it demonstrates
 
